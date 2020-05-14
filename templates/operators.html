@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <div class="container">
+    <table class="table table-striped mt-4">
+      <tr>
+        <th>id</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Email</th>
+        <th>Manage</th>
+      </tr>
+
+      {% for op in ops %}
+        <tr>
+          <td>{{ op.id }}</td>
+          <td>{{ op.firstName }}</td>
+          <td>{{ op.lastName }}</td>
+          <td>{{ op.email }}</td>
+          <td>
+            <div class="row">
+            <button class="btn btn-warning btn-xs mr-1" data-toggle="modal" data-target="#modaledit{{op.id}}">Edit</button>
+            <form class="form-inline" method="POST" action="{{ url_for('delete_operator', idnum=op.id) }}">
+              <button class="btn btn-danger btn-xs" onclick="return confirm('Are you sure?')"">Delete</button>
+            </form>
+            </div>
+          </td>
+        </tr>
+
+        <div id="modaledit{{op.id}}" class="modal fade" role="dialog">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title">Edit an Operator</h4>
+              </div>
+              <div class="modal-body">
+                <form action="{{ url_for('edit_operator') }}" method="POST">
+                  <div class="form-group">
+                    <label>First Name:</label>
+                    <input type="text" class="form-control" name="FirstName" required="1" value="{{op.firstName}}">
+                  </div>
+                  <div class="form-group">
+                    <label>Last Name:</label>
+                    <input type="text" class="form-control" name="LastName" required="1" value="{{op.lastName}}">
+                  </div>
+                  <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" class="form-control" name="Email" required="1" value="{{op.email}}">
+                  </div>
+                  <div class="form-group">
+                    <button class="btn btn-primary" type="submit">Save Changes</button>
+                  </div>
+                  <input id="ID" name="ID" type="hidden" value="{{op.id}}">
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    <table>
+  </div>
+  <a href="" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modaladd">Add</a>
+
+<!-- Modal Add based off of CodeLoop.org example-->
+<div id="modaladd" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add an Operator</h4>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('add_operator') }}" method="POST">
+          <div class="form-group">
+            <label>First Name:</label>
+            <input type="text" class="form-control" name="FirstName" required="1">
+          </div>
+          <div class="form-group">
+            <label>Last Name:</label>
+            <input type="text" class="form-control" name="LastName" required="1">
+          </div>
+          <div class="form-group">
+            <label>Email:</label>
+            <input type="email" class="form-control" name="Email" required="1">
+          </div>
+          <div class="form-group">
+            <button class="btn btn-primary" type="submit">Add</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit also based off of CodeLoop.org example-->
+
+{% endblock content %}

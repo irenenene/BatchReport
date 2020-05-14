@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <div class="container">
+    <table class="table table-striped mt-4">
+      <tr>
+        <th>id</th>
+        <th>Customer Name</th>
+        <th>Primary Address</th>
+        <th>Contact Email</th>
+        <th>Manage</th>
+      </tr>
+
+      {% for customer in customers %}
+        <tr>
+          <td>{{ customer.id }}</td>
+          <td>{{ customer.customerName }}</td>
+          <td>{{ customer.primaryAddress }}</td>
+          <td>{{ customer.contactEmail }}</td>
+          <td>
+            <div class="row">
+            <button class="btn btn-warning btn-xs mr-1" data-toggle="modal" data-target="#modaledit{{customer.id}}">Edit</button>
+            <form class="form-inline" method="POST" action="{{ url_for('delete_customer', idnum=customer.id) }}">
+              <button class="btn btn-danger btn-xs" onclick="return confirm('Are you sure?')"">Delete</button>
+            </form>
+            </div>
+          </td>
+        </tr>
+
+        <div id="modaledit{{customer.id}}" class="modal fade" role="dialog">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h4 class="modal-title">Edit a Customer</h4>
+              </div>
+              <div class="modal-body">
+                <form action="{{ url_for('edit_customer') }}" method="POST">
+                  <div class="form-group">
+                    <label>Customer Name:</label>
+                    <input type="text" class="form-control" name="CustomerName" required="1" value="{{customer.customerName}}">
+                  </div>
+                  <div class="form-group">
+                    <label>Primary Address:</label>
+                    <input type="text" class="form-control" name="PrimaryAddress" required="1" value="{{customer.primaryAddress}}">
+                  </div>
+                  <div class="form-group">
+                    <label>Contact Email:</label>
+                    <input type="email" class="form-control" name="ContactEmail" required="1" value="{{customer.contactEmail}}">
+                  </div>
+                  <div class="form-group">
+                    <button class="btn btn-primary" type="submit">Save Changes</button>
+                  </div>
+                  <input id="ID" name="ID" type="hidden" value="{{customer.id}}">
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    <table>
+  </div>
+  <a href="" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modaladd">Add</a>
+
+<!-- Modal Add based off of CodeLoop.org example-->
+<div id="modaladd" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Add a Customer</h4>
+      </div>
+      <div class="modal-body">
+        <form action="{{ url_for('add_customer') }}" method="POST">
+          <div class="form-group">
+            <label>Customer Name:</label>
+            <input type="text" class="form-control" name="CustomerName" required="1>
+          </div>
+          <div class="form-group">
+            <label>Primary Address:</label>
+            <input type="text" class="form-control" name="PrimaryAddress" required="1>
+          </div>
+          <div class="form-group">
+            <label>Contact Email:</label>
+            <input type="email" class="form-control" name="ContactEmail" required="1">
+          </div>
+          <div class="form-group">
+            <button class="btn btn-primary" type="submit">Add</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit also based off of CodeLoop.org example-->
+
+{% endblock content %}
