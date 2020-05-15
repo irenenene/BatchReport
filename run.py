@@ -8,31 +8,36 @@ app.config['SECRET_KEY'] = 'thequickbrownfoxjumpedoverthelazydog'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://admin:password@35.230.17.75/finalproj'
 db = SQLAlchemy(app)
 
-# rename and recreate this table later?
-class Operators(db.Model):
+
+class Operator(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    firstName = db.Column(db.String(20))
-    lastName = db.Column(db.String(20))
-    email = db.Column(db.String(30))
+    firstName = db.Column(db.String(20), nullable=False)
+    lastName = db.Column(db.String(20), nullable=False)
+    email = db.Column(db.String(30), nullable=False)
     batches = db.relationship('Batch', backref='operator', lazy=True)
+    isActive = db.Column(db.Boolean, default=True)
 
     def __init__(self, fname, lname, email):
         self.firstName = fname
         self.lastName = lname
         self.email = email
+        self.isActive = True
 
 
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    customerName = db.Column(db.String(50))
-    primaryAddress = db.Column(db.String(100))
-    contactEmail = db.Column(db.String(30))
+    customerName = db.Column(db.String(50), nullable=False)
+    primaryAddress = db.Column(db.String(100), nullable=False)
+    contactEmail = db.Column(db.String(30), nullable=False)
     batches = db.relationship('Batch', backref='customer', lazy=True)
+    isActive = db.Column(db.Boolean, default=True)
 
     def __init__(self, customerName, primaryAddress, contactEmail):
         self.customerName = customerName
         self.primaryAddress = primaryAddress
         self.contactEmail = contactEmail
+        self.isActive = True
+
 
 class Batch(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -41,13 +46,21 @@ class Batch(db.Model):
     receivedTime = db.Column(db.DateTime, nullable=False)
     createdTime = db.Column(db.DateTime, nullable=False)
     releasedTime = db.Column(db.DateTime, nullable=False)
-    isPaper = db.Column(db.Boolean, default=False)
-    operator_id = db.Column(db.Integer, db.ForeignKey('operator.id'), nullable=False)
-    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
+    #isPaper = db.Column(db.Boolean, default=False)
+    operatorId = db.Column(db.Integer, db.ForeignKey('operator.id'), nullable=False)
+    customerId = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
+    isDeleted = db.Column(db.Boolean, default=False)
 
-# START HERE ------------------------------------------------------------------
-# Do the constructor next, then make sure to migrate / delete & recreate tables
-
+    def __init__(self, workstationName, batchType, receivedTime, createdTime, releasedTime, operatorId, customerId):
+        self.workstationName = workstationName
+        self.batchType = batchType
+        self.receivedTime = receivedTime
+        self.createdTime = createdTime
+        self.releasedTime = releasedTime
+        #self.isPaper = isPaper
+        self.operatorId = operatorId
+        self.customerId = customerId
+        self.isDeleted = False
 
 
 @app.route('/')
@@ -55,11 +68,11 @@ class Batch(db.Model):
 def home():
     return render_template('home.html', title='Home')
 
-# Operator Section ------------------------------------------------------------
+# Begin Operator Section ------------------------------------------------------
 
 @app.route('/operators', methods=['GET', 'POST'])
 def operators():
-    ops = Operators.query.all()
+    ops = Operator.query.all()
     return render_template('operators.html', title='Operators', ops=ops)
 
 
@@ -70,7 +83,7 @@ def add_operator():
         lname = request.form['LastName']
         email = request.form['Email']
 
-        new_op = Operators(fname, lname, email)
+        new_op = Operator(fname, lname, email)
         db.session.add(new_op)
         db.session.commit()
 
@@ -82,7 +95,7 @@ def add_operator():
 @app.route('/operators/edit', methods=['GET','POST'])
 def edit_operator():
     if request.method == 'POST':
-        record = Operators.query.get(request.form.get('ID'))
+        record = Operator.query.get(request.form.get('ID'))
         record.firstName = request.form['FirstName']
         record.lastName = request.form['LastName']
         record.email = request.form['Email']
@@ -96,7 +109,7 @@ def edit_operator():
 @app.route('/operators/delete/<idnum>', methods=['GET','POST'])
 def delete_operator(idnum):
     if request.method == 'POST':
-        record = Operators.query.get(idnum)
+        record = Operator.query.get(idnum)
         db.session.delete(record)
         db.session.commit()
 
@@ -104,7 +117,7 @@ def delete_operator(idnum):
         return redirect(url_for('operators'))
 
 # End Operator Section --------------------------------------------------------
-# Customer Section ------------------------------------------------------------
+# Begin Customer Section ------------------------------------------------------
 
 @app.route('/customers', methods=['GET'])
 def customers():
@@ -124,7 +137,6 @@ def add_customer():
         db.session.commit()
 
         flash('Customer Added', 'success')
-
         return redirect(url_for('customers'))
 
 
@@ -152,6 +164,60 @@ def delete_customer(idnum):
         return redirect(url_for('customers'))
 
 # End Customer Section --------------------------------------------------------
+# Begin Batch Section --------------------------------------------------------
+
+@app.route('/batches', methods=['GET'])
+def batches():
+    b = Batch.query.all()
+    o = Operator.query.all()
+    c = Customer.query.all()
+    defaultDate = datetime.today().strftime("%Y-%m-%d")
+    return render_template('batches.html', title='Batches', batches=b, ops=o, custs=c, date=defaultDate)
+
+
+@app.route('/batches/add', methods=['POST'])
+def add_batch():
+    if request.method == 'POST':
+        ws = request.form['Workstation']
+        bt = request.form['BatchType']
+        op = request.form['Operator']
+        cs = request.form['Customer']
+        received = request.form['ReceivedTime']
+        created = request.form['CreatedTime']
+        release = request.form['ReleasedTime']
+        # conversions back from string to datetime
+        dtReceived = datetime.strptime(str(received),"%Y-%m-%dT%H:%M")
+        dtCreated = datetime.strptime(str(created),"%Y-%m-%dT%H:%M")
+        dtReleased = datetime.strptime(str(release),"%Y-%m-%dT%H:%M")
+
+        new_batch = Batch(ws, bt, dtReceived, dtCreated, dtReleased, op, cs)
+        db.session.add(new_batch)
+        db.session.commit()
+
+        flash('Batch Added', 'success')
+        return redirect(url_for('batches'))
+
+
+@app.route('/batches/edit', methods=['POST', 'GET'])
+def edit_batch():
+    if request.method == 'POST':
+        record = Batch.query.get(request.form['ID'])
+        record.workstationName = request.form['Workstation']
+        record.batchType = request.form['BatchType']
+        record.operatorId = request.form['Operator']
+        record.customerId = request.form['Customer']
+        received = request.form['ReceivedTime']
+        created = request.form['CreatedTime']
+        release = request.form['ReleasedTime']
+        # conversions back from string to datetime
+        record.receivedTime = datetime.strptime(str(received),"%Y-%m-%dT%H:%M")
+        record.createdTime = datetime.strptime(str(created),"%Y-%m-%dT%H:%M")
+        record.releasedTime = datetime.strptime(str(release),"%Y-%m-%dT%H:%M")
+        db.session.commit()
+
+        flash('Batch ID ' + request.form['ID'] + ' Updated', 'success')
+        return redirect(url_for('batches'))
+
 
 if __name__ == "__main__":
     app.run(debug=True)

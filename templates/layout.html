@@ -30,6 +30,7 @@
             <a class="nav-item nav-link" href="{{ url_for('home') }}">Home</a>
             <a class="nav-item nav-link" href="{{ url_for('operators') }}">Operators</a>
             <a class="nav-item nav-link" href="{{ url_for('customers') }}">Customers</a>
+            <a class="nav-item nav-link" href="{{ url_for('batches') }}">Batches</a>
           </div>
           <!-- Navbar Right Side -->
           <div class="navbar-nav">
@@ -43,13 +44,11 @@
 
   <main role="main" class="container">
     <div class="row">
-      <h2>{{ title }}</h2>
-    </div>
-    <div class="row">
+      <h2 class="ml-3">{{ title }}</h2>
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissable mt-1 role="alert">
+            <div class="alert alert-{{ category }} alert-dismissable mt-1 ml-auto mr-3" role="alert">
                 {{ message }}
                 <button type="button" class="close ml-1" data-dismiss="alert" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
@@ -58,6 +57,8 @@
           {% endfor %}
         {% endif %}
       {% endwith %}
+    </div>
+    <div class="row">
       {% block content %}{% endblock %}
     </div>
   </main>

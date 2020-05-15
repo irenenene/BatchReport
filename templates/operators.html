@@ -19,9 +19,9 @@
           <td>{{ op.email }}</td>
           <td>
             <div class="row">
-            <button class="btn btn-warning btn-xs mr-1" data-toggle="modal" data-target="#modaledit{{op.id}}">Edit</button>
+            <button class="btn btn-warning btn-sm mr-1" data-toggle="modal" data-target="#modaledit{{op.id}}">Edit</button>
             <form class="form-inline" method="POST" action="{{ url_for('delete_operator', idnum=op.id) }}">
-              <button class="btn btn-danger btn-xs" onclick="return confirm('Are you sure?')"">Delete</button>
+              <button class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')"">Delete</button>
             </form>
             </div>
           </td>
