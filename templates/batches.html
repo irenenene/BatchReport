@@ -1,6 +1,20 @@
 {% extends "layout.html" %}
 
 {% block content %}
+  <div>
+    <form class="form-inline ml-3" action="{{ url_for('filter_batches') }}" method="POST">
+      <div class="form-group">
+        <label>Filter Results:</label>
+        <select class="form-control ml-2" name="Category">
+          {% for col in cols %}
+            <option value="{{col}}"">{{col}}</option>
+          {% endfor %}
+        </select>
+        <input type="text" class="form-control ml-2" name="SearchValue" required="1">
+        <button class="btn btn-secondary btn-sm ml-2" type="submit">Apply Filter</button>
+      </div>
+    </form>
+  </div>
   <div class="container">
     <table class="table table-striped mt-4">
       <tr>
@@ -12,6 +26,7 @@
         <th>Released Time</th>
         <th>Operator ID</th>
         <th>Customer ID</th>
+        <th>Document Count</th>
         <th>Manage</th>
       </tr>
 
@@ -25,10 +40,11 @@
           <td>{{ batch.releasedTime }}</td>
           <td>{{ batch.operatorId }}</td>
           <td>{{ batch.customerId }}</td>
+          <td>{{ batch.count }}</td>
           <td>
             <div class="row">
             <button class="btn btn-warning btn-sm mr-1" data-toggle="modal" data-target="#modaledit{{batch.id}}">Edit</button>
-            <form class="form-inline" method="POST" action="">
+            <form class="form-inline" method="POST" action="{{ url_for('delete_batch', idnum=batch.id) }}">
               <button class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')"">Delete</button>
             </form>
             </div>
@@ -89,6 +105,10 @@
                     </select>
                   </div>
                   <div class="form-group">
+                    <label>Document Count:</label>
+                    <input type="number" class="form-control" name="DocumentCount" required="1" value="{{batch.documentCount}}">
+                  </div>
+                  <div class="form-group">
                     <button class="btn btn-primary" type="submit">Save Changes</button>
                   </div>
                   <input id="ID" name="ID" type="hidden" value="{{batch.id}}">
@@ -102,8 +122,9 @@
         </div>
       {% endfor %}
     <table>
+    <a href="" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modaladd">Add</a>
   </div>
-  <a href="" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modaladd">Add</a>
+
 
 <!-- Modal Add based off of CodeLoop.org example-->
 <div id="modaladd" class="modal fade" role="dialog">
@@ -149,6 +170,10 @@
                 <option value="{{cust.id}}">{{ cust.customerName }}</option>
               {% endfor %}
             </select>
+          </div>
+          <div class="form-group">
+            <label>Document Count:</label>
+            <input type="number" class="form-control" name="DocumentCount" required="1">
           </div>
           <div class="form-group">
             <button class="btn btn-primary" type="submit">Add</button>

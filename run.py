@@ -46,20 +46,20 @@ class Batch(db.Model):
     receivedTime = db.Column(db.DateTime, nullable=False)
     createdTime = db.Column(db.DateTime, nullable=False)
     releasedTime = db.Column(db.DateTime, nullable=False)
-    #isPaper = db.Column(db.Boolean, default=False)
     operatorId = db.Column(db.Integer, db.ForeignKey('operator.id'), nullable=False)
     customerId = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
+    count = db.Column(db.Integer, nullable=False)
     isDeleted = db.Column(db.Boolean, default=False)
 
-    def __init__(self, workstationName, batchType, receivedTime, createdTime, releasedTime, operatorId, customerId):
+    def __init__(self, workstationName, batchType, receivedTime, createdTime, releasedTime, operatorId, customerId, count):
         self.workstationName = workstationName
         self.batchType = batchType
         self.receivedTime = receivedTime
         self.createdTime = createdTime
         self.releasedTime = releasedTime
-        #self.isPaper = isPaper
         self.operatorId = operatorId
         self.customerId = customerId
+        self.count = count
         self.isDeleted = False
 
 
@@ -163,16 +163,30 @@ def delete_customer(idnum):
         flash('Customer ID ' + idnum + ' Deleted', 'success')
         return redirect(url_for('customers'))
 
-# End Customer Section --------------------------------------------------------
-# Begin Batch Section --------------------------------------------------------
+# End Customer Section ---------------------------------------------------------
+# Begin Batch Section ----------------------------------------------------------
 
 @app.route('/batches', methods=['GET'])
 def batches():
     b = Batch.query.all()
     o = Operator.query.all()
     c = Customer.query.all()
+    k = Batch.__table__.columns.keys()
     defaultDate = datetime.today().strftime("%Y-%m-%d")
-    return render_template('batches.html', title='Batches', batches=b, ops=o, custs=c, date=defaultDate)
+    return render_template('batches.html', title='Batches', batches=b, ops=o, custs=c, date=defaultDate, cols=k)
+
+
+@app.route('/batches/filter', methods=['GET', 'POST'])
+def filter_batches():
+    searchCategory = request.form["Category"]
+    searchValue = request.form["SearchValue"]
+    # add additioinal query to perform exact match if searching the doc count field
+    b = Batch.query.filter(getattr(Batch, searchCategory).like("%" + searchValue + "%")).all()
+    o = Operator.query.all()
+    c = Customer.query.all()
+    k = Batch.__table__.columns.keys()
+    defaultDate = datetime.today().strftime("%Y-%m-%d")
+    return render_template('batches.html', title='Batches', batches=b, ops=o, custs=c, date=defaultDate, cols=k)
 
 
 @app.route('/batches/add', methods=['POST'])
@@ -185,18 +199,18 @@ def add_batch():
         received = request.form['ReceivedTime']
         created = request.form['CreatedTime']
         release = request.form['ReleasedTime']
+        c = request.form['DocumentCount']
         # conversions back from string to datetime
         dtReceived = datetime.strptime(str(received),"%Y-%m-%dT%H:%M")
         dtCreated = datetime.strptime(str(created),"%Y-%m-%dT%H:%M")
         dtReleased = datetime.strptime(str(release),"%Y-%m-%dT%H:%M")
 
-        new_batch = Batch(ws, bt, dtReceived, dtCreated, dtReleased, op, cs)
+        new_batch = Batch(ws, bt, dtReceived, dtCreated, dtReleased, op, cs, c)
         db.session.add(new_batch)
         db.session.commit()
 
         flash('Batch Added', 'success')
         return redirect(url_for('batches'))
-
 
 @app.route('/batches/edit', methods=['POST', 'GET'])
 def edit_batch():
@@ -209,14 +223,36 @@ def edit_batch():
         received = request.form['ReceivedTime']
         created = request.form['CreatedTime']
         release = request.form['ReleasedTime']
+        record.count = request.form['DocumentCount']
         # conversions back from string to datetime
         record.receivedTime = datetime.strptime(str(received),"%Y-%m-%dT%H:%M")
         record.createdTime = datetime.strptime(str(created),"%Y-%m-%dT%H:%M")
         record.releasedTime = datetime.strptime(str(release),"%Y-%m-%dT%H:%M")
-        db.session.commit()
 
+        db.session.commit()
         flash('Batch ID ' + request.form['ID'] + ' Updated', 'success')
         return redirect(url_for('batches'))
+
+
+@app.route('/batches/delete/<idnum>', methods=['POST', 'GET'])
+def delete_batch(idnum):
+    if request.method == 'POST':
+        record = Batch.query.get(idnum)
+        db.session.delete(record)
+        db.session.commit()
+        #record.isActive = 'False'
+
+        flash('Batch ID ' + idnum + ' Deleted', 'success')
+        return redirect(url_for('batches'))
+
+# End Batch Section ------------------------------------------------------------
+# Begin Report Section ---------------------------------------------------------
+
+@app.route('/reports', methods=['GET'])
+def reports():
+
+    return render_template('reports.html', title='Reports')
+
 
 
 if __name__ == "__main__":

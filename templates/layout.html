@@ -18,7 +18,7 @@
 <body>
   <!-- NavBar from Corey Schafer's Tutorial -->
   <header class="site-header">
-      <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
+      <nav class="navbar navbar-expand-md navbar-dark bg-teal fixed-top">
       <div class="container">
         <a class="navbar-brand mr-4" href="/">Batch Report</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle" aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,7 @@
             <a class="nav-item nav-link" href="{{ url_for('operators') }}">Operators</a>
             <a class="nav-item nav-link" href="{{ url_for('customers') }}">Customers</a>
             <a class="nav-item nav-link" href="{{ url_for('batches') }}">Batches</a>
+            <a class="nav-item nav-link" href="{{ url_for('reports') }}">Reports</a>
           </div>
           <!-- Navbar Right Side -->
           <div class="navbar-nav">
@@ -44,7 +45,7 @@
 
   <main role="main" class="container">
     <div class="row">
-      <h2 class="ml-3">{{ title }}</h2>
+      <h2 class="ml-3">{{title}}</h2>
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           {% for category, message in messages %}
