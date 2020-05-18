@@ -1,8 +1,9 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <div>
-    <form class="form-inline ml-3" action="{{ url_for('filter_batches') }}" method="POST">
+  <div class="container">
+
+    <form class="form-inline" action="{{ url_for('filter_batches') }}" method="POST">
       <div class="form-group">
         <label>Filter Results:</label>
         <select class="form-control ml-2" name="Category">
@@ -14,177 +15,179 @@
         <button class="btn btn-secondary btn-sm ml-2" type="submit">Apply Filter</button>
       </div>
     </form>
-  </div>
-  <div class="container">
-    <table class="table table-striped mt-4">
-      <tr>
-        <th>id</th>
-        <th>Workstation</th>
-        <th>Batch Type</th>
-        <th>Received Time</th>
-        <th>Created Time</th>
-        <th>Released Time</th>
-        <th>Op. ID</th>
-        <th>Cust. ID</th>
-        <th>Doc. Count</th>
-        <th>Manage</th>
-      </tr>
 
-      {% for batch in batches %}
+    <div class="table-responsive">
+      <table class="table table-striped mt-4">
         <tr>
-          <td>{{ batch.id }}</td>
-          <td>{{ batch.workstationName }}</td>
-          <td>{{ batch.batchType }}</td>
-          <td>{{ batch.receivedTime }}</td>
-          <td>{{ batch.createdTime }}</td>
-          <td>{{ batch.releasedTime }}</td>
-          <td>{{ batch.operatorId }}</td>
-          <td>{{ batch.customerId }}</td>
-          <td>{{ batch.docCount }}</td>
-          <td>
-            <div class="row" style="margin:auto">
-            <button class="btn btn-warning btn-sm mr-1" data-toggle="modal" data-target="#modaledit{{batch.id}}"><i class="fas fa-edit"></i></button>
-            <form class="form-inline" method="POST" action="{{ url_for('delete_batch', idnum=batch.id) }}">
-              <button class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')""><i class="fas fa-trash-alt"></i></button>
-            </form>
-            </div>
-          </td>
+          <th>id</th>
+          <th>Workstation</th>
+          <th>Batch Type</th>
+          <th>Received Time</th>
+          <th>Created Time</th>
+          <th>Released Time</th>
+          <th>Op. ID</th>
+          <th>Cust. ID</th>
+          <th>Doc. Count</th>
+          <th>Manage</th>
         </tr>
 
-        <!-- Modal Edit also based off of CodeLoop.org example-->
-        <div id="modaledit{{batch.id}}" class="modal fade" role="dialog">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h4 class="modal-title">Edit a Batch</h4>
+        {% for batch in batches %}
+          <tr>
+            <td>{{ batch.id }}</td>
+            <td>{{ batch.workstationName }}</td>
+            <td>{{ batch.batchType }}</td>
+            <td>{{ batch.receivedTime }}</td>
+            <td>{{ batch.createdTime }}</td>
+            <td>{{ batch.releasedTime }}</td>
+            <td>{{ batch.operatorId }}</td>
+            <td>{{ batch.customerId }}</td>
+            <td>{{ batch.docCount }}</td>
+            <td>
+              <div class="row" style="margin:auto">
+              <button class="btn btn-warning btn-sm mr-1" data-toggle="modal" data-target="#modaledit{{batch.id}}"><i class="fas fa-edit"></i></button>
+              <form class="form-inline" method="POST" action="{{ url_for('delete_batch', idnum=batch.id) }}">
+                <button class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')""><i class="fas fa-trash-alt"></i></button>
+              </form>
               </div>
-              <div class="modal-body">
-                <form action="{{ url_for('edit_batch') }}" method="POST">
-                  <div class="form-group">
-                    <label>Workstation:</label>
-                    <input type="text" class="form-control" name="Workstation" required="1" value="{{batch.workstationName}}">
-                  </div>
-                  <div class="form-group">
-                    <label>Batch Type:</label>
-                    <input type="text" class="form-control" name="BatchType" required="1" value="{{batch.batchType}}">
-                  </div>
-                  <div class="form-group">
-                    <label>Receive Time:</label>
-                    <input type="datetime-local" class="form-control" name="ReceivedTime" required="1" value="{{batch.receivedTime.strftime('%Y-%m-%dT%H:%M')}}">
-                  </div>
-                  <div class="form-group">
-                    <label>Create Time:</label>
-                    <input type="datetime-local" class="form-control" name="CreatedTime" required="1" value="{{batch.createdTime.strftime('%Y-%m-%dT%H:%M')}}">
-                  </div>
-                  <div class="form-group">
-                    <label>Release Time:</label>
-                    <input type="datetime-local" class="form-control" name="ReleasedTime" required="1" value="{{batch.releasedTime.strftime('%Y-%m-%dT%H:%M')}}">
-                  </div>
-                  <div class="form-group">
-                    <label>Operator:</label>
-                    <select class="form-control" name="Operator" required="1">
-                      {% for op in ops %}
-                        {% if op.id == batch.operatorId %}
-                          <option value="{{op.id}}" selected>{{ op.firstName }} {{ op.lastName }}</option>
-                        {% else %}
-                          <option value="{{op.id}}">{{ op.firstName }} {{ op.lastName }}</option>
-                        {% endif %}
-                      {% endfor %}
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label>Customer:</label>
-                    <select class="form-control" name="Customer" required="1">
-                      {% for cust in custs %}
-                        {% if cust.id == batch.operatorId %}
-                          <option value="{{cust.id}}" selected>{{ cust.customerName }}</option>
-                        {% else %}
-                          <option value="{{cust.id}}">{{ cust.customerName }}</option>
-                        {% endif %}
-                      {% endfor %}
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label>Document Count:</label>
-                    <input type="number" class="form-control" name="DocumentCount" required="1" value="{{batch.docCount}}">
-                  </div>
-                  <div class="form-group">
-                    <button class="btn btn-primary" type="submit">Save Changes</button>
-                  </div>
-                  <input id="ID" name="ID" type="hidden" value="{{batch.id}}">
-                </form>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </td>
+          </tr>
+
+          <!-- Modal Edit also based off of CodeLoop.org example-->
+          <div id="modaledit{{batch.id}}" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title">Edit a Batch</h4>
+                </div>
+                <div class="modal-body">
+                  <form action="{{ url_for('edit_batch') }}" method="POST">
+                    <div class="form-group">
+                      <label>Workstation:</label>
+                      <input type="text" class="form-control" name="Workstation" required="1" value="{{batch.workstationName}}">
+                    </div>
+                    <div class="form-group">
+                      <label>Batch Type:</label>
+                      <input type="text" class="form-control" name="BatchType" required="1" value="{{batch.batchType}}">
+                    </div>
+                    <div class="form-group">
+                      <label>Receive Time:</label>
+                      <input type="datetime-local" class="form-control" name="ReceivedTime" required="1" value="{{batch.receivedTime.strftime('%Y-%m-%dT%H:%M')}}">
+                    </div>
+                    <div class="form-group">
+                      <label>Create Time:</label>
+                      <input type="datetime-local" class="form-control" name="CreatedTime" required="1" value="{{batch.createdTime.strftime('%Y-%m-%dT%H:%M')}}">
+                    </div>
+                    <div class="form-group">
+                      <label>Release Time:</label>
+                      <input type="datetime-local" class="form-control" name="ReleasedTime" required="1" value="{{batch.releasedTime.strftime('%Y-%m-%dT%H:%M')}}">
+                    </div>
+                    <div class="form-group">
+                      <label>Operator:</label>
+                      <select class="form-control" name="Operator" required="1">
+                        {% for op in ops %}
+                          {% if op.id == batch.operatorId %}
+                            <option value="{{op.id}}" selected>{{ op.firstName }} {{ op.lastName }}</option>
+                          {% else %}
+                            <option value="{{op.id}}">{{ op.firstName }} {{ op.lastName }}</option>
+                          {% endif %}
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Customer:</label>
+                      <select class="form-control" name="Customer" required="1">
+                        {% for cust in custs %}
+                          {% if cust.id == batch.operatorId %}
+                            <option value="{{cust.id}}" selected>{{ cust.customerName }}</option>
+                          {% else %}
+                            <option value="{{cust.id}}">{{ cust.customerName }}</option>
+                          {% endif %}
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Document Count:</label>
+                      <input type="number" class="form-control" name="DocumentCount" required="1" value="{{batch.docCount}}">
+                    </div>
+                    <div class="form-group">
+                      <button class="btn btn-primary" type="submit">Save Changes</button>
+                    </div>
+                    <input id="ID" name="ID" type="hidden" value="{{batch.id}}">
+                  </form>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
               </div>
             </div>
           </div>
+        {% endfor %}
+      </table>
+
+    </div>
+
+    <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modaladd">Add</button>
+
+    <!-- Modal Add based off of CodeLoop.org example-->
+    <div id="modaladd" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title">Add a Batch</h4>
+          </div>
+          <div class="modal-body">
+            <form action="{{ url_for('add_batch') }}" method="POST">
+              <div class="form-group">
+                <label>Workstation:</label>
+                <input type="text" class="form-control" name="Workstation" required="1">
+              </div>
+              <div class="form-group">
+                <label>Batch Type:</label>
+                <input type="text" class="form-control" name="BatchType" required="1">
+              </div>
+              <div class="form-group">
+                <label>Receive Time:</label>
+                <input type="datetime-local" value="{{date}}T00:00" class="form-control" name="ReceivedTime" required="1">
+              </div>
+              <div class="form-group">
+                <label>Create Time:</label>
+                <input type="datetime-local" value="{{date}}T00:00" class="form-control" name="CreatedTime" required="1">
+              </div>
+              <div class="form-group">
+                <label>Release Time:</label>
+                <input type="datetime-local" value="{{date}}T00:00" class="form-control" name="ReleasedTime" required="1">
+              </div>
+              <div class="form-group">
+                <label>Operator:</label>
+                <select class="form-control" name="Operator" required="1">
+                  {% for op in ops %}
+                    <option value="{{op.id}}">{{ op.firstName }} {{ op.lastName }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Customer:</label>
+                <select class="form-control" name="Customer" required="1">
+                  {% for cust in custs %}
+                    <option value="{{cust.id}}">{{ cust.customerName }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Document Count:</label>
+                <input type="number" class="form-control" name="DocumentCount" required="1">
+              </div>
+              <div class="form-group">
+                <button class="btn btn-primary" type="submit">Add</button>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          </div>
         </div>
-      {% endfor %}
-    <table>
-    <a href="" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modaladd">Add</a>
-  </div>
-
-
-<!-- Modal Add based off of CodeLoop.org example-->
-<div id="modaladd" class="modal fade" role="dialog">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Add a Batch</h4>
-      </div>
-      <div class="modal-body">
-        <form action="{{ url_for('add_batch') }}" method="POST">
-          <div class="form-group">
-            <label>Workstation:</label>
-            <input type="text" class="form-control" name="Workstation" required="1">
-          </div>
-          <div class="form-group">
-            <label>Batch Type:</label>
-            <input type="text" class="form-control" name="BatchType" required="1">
-          </div>
-          <div class="form-group">
-            <label>Receive Time:</label>
-            <input type="datetime-local" value="{{date}}T00:00" class="form-control" name="ReceivedTime" required="1">
-          </div>
-          <div class="form-group">
-            <label>Create Time:</label>
-            <input type="datetime-local" value="{{date}}T00:00" class="form-control" name="CreatedTime" required="1">
-          </div>
-          <div class="form-group">
-            <label>Release Time:</label>
-            <input type="datetime-local" value="{{date}}T00:00" class="form-control" name="ReleasedTime" required="1">
-          </div>
-          <div class="form-group">
-            <label>Operator:</label>
-            <select class="form-control" name="Operator" required="1">
-              {% for op in ops %}
-                <option value="{{op.id}}">{{ op.firstName }} {{ op.lastName }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Customer:</label>
-            <select class="form-control" name="Customer" required="1">
-              {% for cust in custs %}
-                <option value="{{cust.id}}">{{ cust.customerName }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Document Count:</label>
-            <input type="number" class="form-control" name="DocumentCount" required="1">
-          </div>
-          <div class="form-group">
-            <button class="btn btn-primary" type="submit">Add</button>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
       </div>
     </div>
   </div>
-</div>
 
 {% endblock content %}

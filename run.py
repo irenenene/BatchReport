@@ -353,6 +353,10 @@ def download_full():
     response.headers.set("Content-Disposition", "attachment", filename="log.csv")
     return response
 
+# End Report Section -----------------------------------------------------------
+# Begin Search Section ---------------------------------------------------------
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
