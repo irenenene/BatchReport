@@ -2,23 +2,43 @@
 
 {% block content %}
 <div class="container">
-  <h4>Daily Release Count</h4>
-  <form action="{{ url_for('change_customer_report_date') }}" class="form-inline" method="POST">
-    <label>Filter By Date:</label>
-    <input type="date" class="form-control ml-2" name="ReleaseDate" required="1" value="{{dateString}}">
-    <button class="btn btn-sm btn-secondary ml-2" type="submit">Apply Filter</button>
-  </form>
+    <h4>Daily Release Count</h4>
+    <form action="{{ url_for('change_customer_report_date') }}" class="form-inline" method="POST">
+      <label>Filter By Date:</label>
+      <input type="date" class="form-control ml-2" name="ReleaseDate" required="1" value="{{dateString}}">
+      <button class="btn btn-sm btn-secondary ml-2" type="submit">Apply Filter</button>
+    </form>
     <table class="table table-striped mt-4">
       <tr>
         <th>Customer Name</th>
-        <th>Total Count</th>
+        <th>Daily Count</th>
       </tr>
-      {% for total in customerTotals %}
+      {% for total in dailyTotals %}
         <tr>
           <td>{{total.Customer}}</td>
           <td>{{total.Total}}</td>
         </tr>
       {% endfor %}
     </table>
+
+    <h4>Monthly Release Count</h4>
+    <form action="{{ url_for('change_customer_report_month')}}" class="form-inline" method="POST">
+      <label>Filter By Month:</label>
+      <input type="month" class="form-control ml-2" name="ReleaseMonth" required="1" value="{{monthString}}">
+      <button class="btn btn-sm btn-secondary ml-2" type="submit">Apply Filter</button>
+    </form>
+    <table class="table table-striped mt-4">
+      <tr>
+        <th>Customer Name</th>
+        <th>Monthly Count</th>
+      </tr>
+      {% for total in monthlyTotals %}
+        <tr>
+          <td>{{total.Customer}}</td>
+          <td>{{total.Total}}</td>
+        </tr>
+      {% endfor %}
+    </table>
+
 </div>
 {% endblock content %}

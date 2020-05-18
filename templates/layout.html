@@ -33,12 +33,13 @@
             <a class="nav-item nav-link" href="{{ url_for('operators') }}">Operators</a>
             <a class="nav-item nav-link" href="{{ url_for('customers') }}">Customers</a>
             <a class="nav-item nav-link" href="{{ url_for('batches') }}">Batches</a>
+            <a class="nav-item nav-link" href="#">Search</a>
             <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Reports</a>
               <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <a class="dropdown-item" href="{{ url_for('customer_reports')}}">By Customer</a>
-                <a class="dropdown-item" href="#">By Operator</a>
+                <a class="dropdown-item" href="{{ url_for('customer_reports') }}">By Customer</a>
+                <a class="dropdown-item" href="{{ url_for('operator_reports') }}">By Operator</a>
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="{{ url_for('exports') }}">Export</a>
               </div>

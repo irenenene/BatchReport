@@ -252,29 +252,60 @@ def delete_batch(idnum):
 # End Batch Section ------------------------------------------------------------
 # Begin Report Section ---------------------------------------------------------
 
-@app.route('/reports', methods=['GET'])
+@app.route('/customerreports', methods=['GET', 'POST'])
 def customer_reports():
-    defaultDate = datetime.today().strftime("%Y-%m-%d")
-    newQuery = 'SELECT customerName as Customer,'\
+    formDate = datetime.today().strftime("%Y-%m-%d")
+    formMonth = datetime.today().strftime("%Y-%m")
+
+    if request.method == 'POST':
+        formDate = request.form["ReleaseDate"]
+        formMonth = request.form["ReleaseMonth"]
+
+    dateQuery = 'SELECT customerName as Customer,'\
                 ' IFNULL((SELECT SUM(docCount) FROM batch b WHERE b.customerId=A.id and'\
                 ' DATE_FORMAT(b.releasedTime, \'%Y-%m-%d\') = \''\
-                + defaultDate + '\'),0) as Total FROM customer A'
-    customerTotals = db.session.execute(newQuery)
+                + formDate + '\'),0) as Total FROM customer A'
+    dailyTotals = db.session.execute(dateQuery)
+    monthQuery = 'SELECT customerName as Customer,'\
+                ' IFNULL((SELECT SUM(docCount) FROM batch b WHERE b.customerId=A.id and'\
+                ' DATE_FORMAT(b.releasedTime, \'%Y-%m\') = \''\
+                + formMonth + '\'),0) as Total FROM customer A'
+    monthlyTotals = db.session.execute(monthQuery)
 
-    return render_template('customer_report.html', title='Customer Reports', customerTotals=customerTotals, dateString=defaultDate)
+    return render_template('customer_reports.html',
+                            title='Customer Reports',
+                            dateString=formDate,
+                            monthString=formMonth,
+                            dailyTotals=dailyTotals,
+                            monthlyTotals=monthlyTotals)
 
 
-@app.route('/reports/date', methods=['GET', 'POST'])
-def change_customer_report_date():
+@app.route('/operatorreports', methods=['GET', 'POST'])
+def operator_reports():
+    formDate = datetime.today().strftime("%Y-%m-%d")
+    formMonth = datetime.today().strftime("%Y-%m")
+
     if request.method == 'POST':
-        rDate = request.form["ReleaseDate"]
-        newQuery = 'SELECT customerName as Customer,'\
-                    ' IFNULL((SELECT SUM(docCount) FROM batch b WHERE b.customerId=A.id and'\
-                    ' DATE_FORMAT(b.releasedTime, \'%Y-%m-%d\') = \''\
-                    + rDate + '\'),0) as Total FROM customer A'
-        totals_by_date = db.session.execute(newQuery)
+        formDate = request.form["ReleaseDate"]
+        formMonth = request.form["ReleaseMonth"]
 
-        return render_template('customer_report.html', title='Customer Reports', customerTotals=totals_by_date, dateString=rDate)
+    dateQuery = 'SELECT CONCAT(firstName, \' \', lastName) as Operator,'\
+                ' IFNULL((SELECT SUM(docCount) FROM batch b WHERE b.operatorId=A.id and'\
+                ' DATE_FORMAT(b.releasedTime, \'%Y-%m-%d\') = \''\
+                + formDate + '\'),0) as Total FROM operator A'
+    dailyTotals = db.session.execute(dateQuery)
+    monthQuery = 'SELECT CONCAT(firstName, \' \', lastName) as Operator,'\
+                ' IFNULL((SELECT SUM(docCount) FROM batch b WHERE b.operatorId=A.id and'\
+                ' DATE_FORMAT(b.releasedTime, \'%Y-%m\') = \''\
+                + formMonth + '\'),0) as Total FROM operator A'
+    monthlyTotals = db.session.execute(monthQuery)
+
+    return render_template('operator_reports.html',
+                            title='Operator Reports',
+                            dateString=formDate,
+                            monthString=formMonth,
+                            dailyTotals=dailyTotals,
+                            monthlyTotals=monthlyTotals)
 
 
 @app.route('/exports')
@@ -283,7 +314,7 @@ def exports():
     return render_template('exports.html', title='Export')
 
 
-# export batch table with joined info from operators and customers
+# download_full will export the batch table with joined info from operators and customers
 # uses solution from davidism@Stack Overflow
 @app.route('/exports/allbatches', methods=['GET', 'POST'])
 def download_full():
