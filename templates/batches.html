@@ -24,9 +24,9 @@
         <th>Received Time</th>
         <th>Created Time</th>
         <th>Released Time</th>
-        <th>Operator ID</th>
-        <th>Customer ID</th>
-        <th>Document Count</th>
+        <th>Op. ID</th>
+        <th>Cust. ID</th>
+        <th>Doc. Count</th>
         <th>Manage</th>
       </tr>
 
@@ -40,12 +40,12 @@
           <td>{{ batch.releasedTime }}</td>
           <td>{{ batch.operatorId }}</td>
           <td>{{ batch.customerId }}</td>
-          <td>{{ batch.count }}</td>
+          <td>{{ batch.docCount }}</td>
           <td>
-            <div class="row">
-            <button class="btn btn-warning btn-sm mr-1" data-toggle="modal" data-target="#modaledit{{batch.id}}">Edit</button>
+            <div class="row" style="margin:auto">
+            <button class="btn btn-warning btn-sm mr-1" data-toggle="modal" data-target="#modaledit{{batch.id}}"><i class="fas fa-edit"></i></button>
             <form class="form-inline" method="POST" action="{{ url_for('delete_batch', idnum=batch.id) }}">
-              <button class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')"">Delete</button>
+              <button class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')""><i class="fas fa-trash-alt"></i></button>
             </form>
             </div>
           </td>

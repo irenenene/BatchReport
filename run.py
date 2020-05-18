@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import csv
+from io import StringIO
+from werkzeug.wrappers import Response
 
 app = Flask(__name__)
 
@@ -48,10 +51,11 @@ class Batch(db.Model):
     releasedTime = db.Column(db.DateTime, nullable=False)
     operatorId = db.Column(db.Integer, db.ForeignKey('operator.id'), nullable=False)
     customerId = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
-    count = db.Column(db.Integer, nullable=False)
+    docCount = db.Column(db.Integer, nullable=False)
     isDeleted = db.Column(db.Boolean, default=False)
 
-    def __init__(self, workstationName, batchType, receivedTime, createdTime, releasedTime, operatorId, customerId, count):
+    def __init__(self, workstationName, batchType, receivedTime, createdTime,\
+                    releasedTime, operatorId, customerId, docCount):
         self.workstationName = workstationName
         self.batchType = batchType
         self.receivedTime = receivedTime
@@ -59,7 +63,7 @@ class Batch(db.Model):
         self.releasedTime = releasedTime
         self.operatorId = operatorId
         self.customerId = customerId
-        self.count = count
+        self.docCount = docCount
         self.isDeleted = False
 
 
@@ -223,7 +227,7 @@ def edit_batch():
         received = request.form['ReceivedTime']
         created = request.form['CreatedTime']
         release = request.form['ReleasedTime']
-        record.count = request.form['DocumentCount']
+        record.docCount = request.form['DocumentCount']
         # conversions back from string to datetime
         record.receivedTime = datetime.strptime(str(received),"%Y-%m-%dT%H:%M")
         record.createdTime = datetime.strptime(str(created),"%Y-%m-%dT%H:%M")
@@ -249,10 +253,74 @@ def delete_batch(idnum):
 # Begin Report Section ---------------------------------------------------------
 
 @app.route('/reports', methods=['GET'])
-def reports():
+def customer_reports():
+    defaultDate = datetime.today().strftime("%Y-%m-%d")
+    newQuery = 'SELECT customerName as Customer,'\
+                ' IFNULL((SELECT SUM(docCount) FROM batch b WHERE b.customerId=A.id and'\
+                ' DATE_FORMAT(b.releasedTime, \'%Y-%m-%d\') = \''\
+                + defaultDate + '\'),0) as Total FROM customer A'
+    customerTotals = db.session.execute(newQuery)
 
-    return render_template('reports.html', title='Reports')
+    return render_template('customer_report.html', title='Customer Reports', customerTotals=customerTotals, dateString=defaultDate)
 
+
+@app.route('/reports/date', methods=['GET', 'POST'])
+def change_customer_report_date():
+    if request.method == 'POST':
+        rDate = request.form["ReleaseDate"]
+        newQuery = 'SELECT customerName as Customer,'\
+                    ' IFNULL((SELECT SUM(docCount) FROM batch b WHERE b.customerId=A.id and'\
+                    ' DATE_FORMAT(b.releasedTime, \'%Y-%m-%d\') = \''\
+                    + rDate + '\'),0) as Total FROM customer A'
+        totals_by_date = db.session.execute(newQuery)
+
+        return render_template('customer_report.html', title='Customer Reports', customerTotals=totals_by_date, dateString=rDate)
+
+
+@app.route('/exports')
+def exports():
+
+    return render_template('exports.html', title='Export')
+
+
+# export batch table with joined info from operators and customers
+# uses solution from davidism@Stack Overflow
+@app.route('/exports/allbatches', methods=['GET', 'POST'])
+def download_full():
+    def generate():
+        query = ( 'SELECT batch.id, batchType, customerName, CONCAT(firstName, \' \', lastName) as operatorName, receivedTime, createdTime, releasedTime, docCount, workstationName'
+                    ' FROM batch JOIN customer ON customer.id = batch.customerId JOIN operator ON batch.operatorId=operator.id'
+                    ' ORDER BY batch.id')
+
+        dictList = []
+        colNames = db.session.execute(query + ' LIMIT 1').keys()
+        rows = db.session.execute(query)
+
+        for item in rows:
+            dict = {}
+            for col in colNames:
+                dict[col] = item[col]
+                print('test')
+            dictList.append(dict)
+
+        print(dictList)
+
+        data = StringIO()
+        writer = csv.DictWriter(data, colNames)
+        writer.writeheader()
+        yield data.getvalue()
+        data.seek(0)
+        data.truncate(0)
+
+        for dict in dictList:
+            writer.writerow(dict)
+            yield data.getvalue()
+            data.seek(0)
+            data.truncate(0)
+
+    response = Response(generate(), mimetype='text/csv')
+    response.headers.set("Content-Disposition", "attachment", filename="log.csv")
+    return response
 
 
 if __name__ == "__main__":
