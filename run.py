@@ -8,7 +8,7 @@ from werkzeug.wrappers import Response
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'thequickbrownfoxjumpedoverthelazydog'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://admin:password@35.230.17.75/finalproj'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'YOURCONNECTIONSTRINGHERE'
 db = SQLAlchemy(app)
 
 
