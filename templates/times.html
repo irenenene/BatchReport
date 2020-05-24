@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block content %}
+  <div class="container">
+    <table class="table table-striped mt-4">
+      <tr>
+        <th>Batch ID</th>
+        <th>Operator</th>
+        <th>Customer</th>
+        <th>Received</th>
+        <th>Released</th>
+        <th>Hours</th>
+      </tr>
+
+      {% for record in records %}
+        {% if record.Hours >= 48 %}
+        <tr class="table-danger">
+        {% else %}
+        <tr>
+        {% endif %}
+          <td>{{record.Id}}</td>
+          <td>{{record.Operator}}</td>
+          <td>{{record.customerName}}</td>
+          <td>{{record.receivedTime}}</td>
+          <td>{{record.releasedTime}}</td>
+          <td>{{record.Hours}}</td>
+        </tr>
+      {% endfor %}
+
+    </table>
+  </div>
+
+{% endblock content %}

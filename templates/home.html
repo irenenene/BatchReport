@@ -2,7 +2,16 @@
 
 {% block content %}
   <div class="container">
-    Main Page Content
+    <table class="table table-striped table-sm" style="width:auto">
+      <tr>
+        <th>Today's Active Operators</th>
+      </tr>
+      {% for record in records %}
+      <tr>
+        <td>{{record.Operator}}<td>
+      </tr>
+      {% endfor %}
+    </table>
   </div>
 
 {% endblock content %}

@@ -67,10 +67,17 @@ class Batch(db.Model):
         self.isDeleted = False
 
 
-@app.route('/')
-@app.route('/home')
+@app.route('/', methods=['GET'])
+@app.route('/home', methods=['GET'])
 def home():
-    return render_template('home.html', title='Home')
+    currDate = datetime.today().strftime("%Y-%m-%d")
+    query = 'SELECT CONCAT(firstName, \' \', lastName) as Operator'\
+            ' FROM operator'\
+            ' WHERE id IN (SELECT DISTINCT operatorId FROM batch '\
+                            ' WHERE releasedTime LIKE \'%' + currDate + '%\')'
+    records = db.session.execute(query)
+
+    return render_template('home.html', title='Home', records=records)
 
 # Begin Operator Section ------------------------------------------------------
 
@@ -315,7 +322,6 @@ def exports():
 
 
 # download_full will export the batch table with joined info from operators and customers
-# uses solution from davidism@Stack Overflow
 @app.route('/exports/allbatches', methods=['GET', 'POST'])
 def download_full():
     def generate():
@@ -331,7 +337,6 @@ def download_full():
             dict = {}
             for col in colNames:
                 dict[col] = item[col]
-                print('test')
             dictList.append(dict)
 
         print(dictList)
@@ -352,6 +357,23 @@ def download_full():
     response = Response(generate(), mimetype='text/csv')
     response.headers.set("Content-Disposition", "attachment", filename="log.csv")
     return response
+
+
+@app.route('/times', methods=['GET'])
+def get_times():
+    query = 'SELECT batch.Id,'\
+            ' CONCAT(firstname, \' \', lastName) as Operator,'\
+            ' customer.customerName,'\
+            ' receivedTime,'\
+            ' releasedTime,'\
+            ' Hour(TIMEDIFF(releasedTime, receivedtime)) as Hours'\
+            ' FROM batch JOIN operator ON batch.operatorId = operator.Id'\
+            ' JOIN customer ON batch.customerId = customer.Id'\
+            ' ORDER BY customer.customerName'
+    records = db.session.execute(query)
+
+    return render_template('times.html', title='Times', records=records)
+
 
 # End Report Section -----------------------------------------------------------
 # Begin Search Section ---------------------------------------------------------
